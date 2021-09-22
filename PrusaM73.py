@@ -47,13 +47,18 @@ class PrusaM73(Script):
 
                 ## capture the elapsed time, and if the total_time has been
                 ## found, emit the M73 instruction.
-                if total_time is not None and li.startswith(";TIME_ELAPSED:"):
-                    elapsed_time = float(li.split(":", 2)[1])
+                if total_time is not None:
+                    if li.startswith(";LAYER:0"):
+                        time_remaining = round(total_time / 60.0)
+                        new_layer_instructions.append("M73 P0 R{}".format(time_remaining))
+                        
+                    elif li.startswith(";TIME_ELAPSED:"):
+                        elapsed_time = float(li.split(":", 2)[1])
 
-                    progress_pct = round(elapsed_time * 100.0 / total_time)
-                    time_remaining = round((total_time - elapsed_time) / 60.0)
+                        progress_pct = round(elapsed_time * 100.0 / total_time)
+                        time_remaining = round((total_time - elapsed_time) / 60.0)
 
-                    new_layer_instructions.append("M73 P{} R{}".format(progress_pct, time_remaining))
+                        new_layer_instructions.append("M73 P{} R{}".format(progress_pct, time_remaining))
 
             ## replace the layer instructions with our new augmented ones
             layers[layer_ind] = "\n".join(new_layer_instructions)
